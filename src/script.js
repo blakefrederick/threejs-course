@@ -9,14 +9,20 @@ const canvas = document.querySelector('canvas.webgl')
 // Create a scene
 const scene = new THREE.Scene()
 
-const geometry = new THREE.BoxGeometry(1, 1, 1)
-const materials = []
+// Custom geometry
+const geometry = new THREE.BufferGeometry()
 
-// Generate a different colour for each face
-for (let i = 0; i < 6; i++) {
-    const material = new THREE.MeshBasicMaterial({ color: getRandomColor() })
-    materials.push(material)
+const count = 60
+const positionsArray = new Float32Array(count * 3 * 3)
+
+for (let i = 0; i < count * 3 * 3; i++) {
+    positionsArray[i] = (Math.random() - 0.5) * 4
 }
+
+const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
+geometry.setAttribute('position', positionsAttribute)
+
+const material = new THREE.MeshBasicMaterial({ color: getRandomColor(), wireframe: true })
 
 function getRandomColor() {
     // aesthetic colours only
@@ -24,7 +30,7 @@ function getRandomColor() {
     return colors[Math.floor(Math.random() * colors.length)]
 }
 
-const mesh = new THREE.Mesh(geometry, materials)
+const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh)
 
 const sizes = {
@@ -35,10 +41,9 @@ const sizes = {
 // Camera
 
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height)
-
-camera.position.z = 3
+camera.position.z = 0
 camera.position.y = 1
-camera.position.x = 1
+camera.position.x = 0
 scene.add(camera)
 
 // Renderer
