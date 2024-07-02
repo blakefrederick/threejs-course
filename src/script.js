@@ -19,21 +19,17 @@ for (let i = 0; i < 6; i++) {
 }
 
 function getRandomColor() {
-    const letters = '0123456789ABCDEF'
-    let color = '#'
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)]
-    }
-    return color
+    // aesthetic colours only
+    const colors = ['#000080', '#800000', '#008000', '#800080', '#008080', '#0000FF', '#8B0000', '#006400', '#8B008B', '#008B8B', '#8B4513', '#00008B', '#FF0000', '#00FF00', '#FF00FF', '#00FFFF', '#FFFF00', '#FF00FF', '#FF4500', '#FFD700', '#FF1493', '#FF69B4', '#FF8C00']
+    return colors[Math.floor(Math.random() * colors.length)]
 }
 
-// Create the mesh with the array of materials
 const mesh = new THREE.Mesh(geometry, materials)
 scene.add(mesh)
 
 const sizes = {
-    width: 800,
-    height: 600
+    width: window.innerWidth,
+    height: window.innerHeight
 }   
 
 // Camera
@@ -41,14 +37,27 @@ const sizes = {
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height)
 
 camera.position.z = 3
+camera.position.y = 1
+camera.position.x = 1
 scene.add(camera)
 
 // Renderer
 
-const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
-})
+var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true }); // alpha for transparent background
+
 renderer.setSize(sizes.width, sizes.height)
+
+window.addEventListener('resize', () => {
+
+    // Update canvas size to fit the window
+    sizes.width = window.innerWidth
+    sizes.height = window.innerHeight
+
+    camera.aspect = sizes.width / sizes.height
+    camera.updateProjectionMatrix()
+
+    renderer.setSize(sizes.width, sizes.height)
+})
 
 // Controls
 
@@ -61,6 +70,10 @@ const animate = () => {
     requestAnimationFrame(animate)
 
     controls.update()
+
+    mesh.rotation.x += 0.001
+    mesh.rotation.y += 0.002
+    mesh.rotation.z += 0.003
 
     renderer.render(scene, camera)
 }
