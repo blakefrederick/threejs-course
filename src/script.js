@@ -12,26 +12,18 @@ const scene = new THREE.Scene()
 // Geometry
 const geometry = new THREE.BoxGeometry(1, 1, 1)
 
-// Custom geometry
-// const geometry = new THREE.BufferGeometry()
+// Textures
 
-// const count = 60
-// const positionsArray = new Float32Array(count * 3 * 3)
+const image = new Image()
+const texture = new THREE.Texture(image)
 
-// for (let i = 0; i < count * 3 * 3; i++) {
-//     positionsArray[i] = (Math.random() - 0.5) * 4
-// }
-
-// const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
-// geometry.setAttribute('position', positionsAttribute)
-
-const material = new THREE.MeshBasicMaterial({ color: getRandomColor(), wireframe: false })
-
-function getRandomColor() {
-    // aesthetic colours only
-    const colors = ['#000080', '#800000', '#008000', '#800080', '#008080', '#0000FF', '#8B0000', '#006400', '#8B008B', '#008B8B', '#8B4513', '#00008B', '#FF0000', '#00FF00', '#FF00FF', '#00FFFF', '#FFFF00', '#FF00FF', '#FF4500', '#FFD700', '#FF1493', '#FF69B4', '#FF8C00']
-    return colors[Math.floor(Math.random() * colors.length)]
+image.onload = () => {
+    texture.needsUpdate = true
 }
+
+image.src = 'cardboard.jpg'
+
+const material = new THREE.MeshBasicMaterial({ map: texture })
 
 const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh)
@@ -44,7 +36,7 @@ const sizes = {
 // Camera
 
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height)
-camera.position.z = 3
+camera.position.z = 1
 camera.position.y = 1
 camera.position.x = 1
 scene.add(camera)
