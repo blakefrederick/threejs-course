@@ -46,6 +46,10 @@ scene.add(camera)
 var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true }); // alpha for transparent background
 
 renderer.setSize(sizes.width, sizes.height)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+
+// Event listeners 
 
 window.addEventListener('resize', () => {
 
@@ -58,6 +62,27 @@ window.addEventListener('resize', () => {
 
     renderer.setSize(sizes.width, sizes.height)
 })
+
+window.addEventListener('dblclick', () => {
+    
+    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+
+    if (!fullscreenElement) {
+        if (canvas.requestFullscreen) {
+            canvas.requestFullscreen()
+        } else if (canvas.webkitRequestFullscreen) {
+            canvas.webkitRequestFullscreen()
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen()
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen()
+        }
+    }
+})
+
+
 
 // Controls
 
