@@ -1,28 +1,31 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-
-console.log(THREE)
+import gsap from 'gsap'
+import * as dat from 'dat.gui'
 
 const canvas = document.querySelector('canvas.webgl')
 
 // Create a scene
 const scene = new THREE.Scene()
 
+// Geometry
+const geometry = new THREE.BoxGeometry(1, 1, 1)
+
 // Custom geometry
-const geometry = new THREE.BufferGeometry()
+// const geometry = new THREE.BufferGeometry()
 
-const count = 60
-const positionsArray = new Float32Array(count * 3 * 3)
+// const count = 60
+// const positionsArray = new Float32Array(count * 3 * 3)
 
-for (let i = 0; i < count * 3 * 3; i++) {
-    positionsArray[i] = (Math.random() - 0.5) * 4
-}
+// for (let i = 0; i < count * 3 * 3; i++) {
+//     positionsArray[i] = (Math.random() - 0.5) * 4
+// }
 
-const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
-geometry.setAttribute('position', positionsAttribute)
+// const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
+// geometry.setAttribute('position', positionsAttribute)
 
-const material = new THREE.MeshBasicMaterial({ color: getRandomColor(), wireframe: true })
+const material = new THREE.MeshBasicMaterial({ color: getRandomColor(), wireframe: false })
 
 function getRandomColor() {
     // aesthetic colours only
@@ -41,9 +44,9 @@ const sizes = {
 // Camera
 
 const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height)
-camera.position.z = 0
+camera.position.z = 3
 camera.position.y = 1
-camera.position.x = 0
+camera.position.x = 1
 scene.add(camera)
 
 // Renderer
@@ -109,3 +112,28 @@ const animate = () => {
 }
 
 animate()
+
+// Debug
+
+const gui = new dat.GUI()
+gui.add(mesh.position, 'x').min(-3).max(3).step(0.01).name('x position')
+gui.add(mesh.position, 'y').min(-3).max(3).step(0.01).name('y position')
+gui.add(mesh.position, 'z').min(-3).max(3).step(0.01).name('z position')
+gui.add(mesh.rotation, 'x').min(-3).max(3).step(0.01).name('x rotation')
+gui.add(mesh.rotation, 'y').min(-3).max(3).step(0.01).name('y rotation')
+gui.add(mesh.rotation, 'z').min(-3).max(3).step(0.01).name('z rotation')
+gui.add(mesh.scale, 'x').min(0).max(3).step(0.01).name('x scale')
+gui.add(mesh.scale, 'y').min(0).max(3).step(0.01).name('y scale')
+gui.add(mesh.scale, 'z').min(0).max(3).step(0.01).name('z scale')
+
+const parameter = {
+    color: '#000080',
+    spin: () => {
+        gsap.to(mesh.rotation, { duration: 1, y: mesh.rotation.y + Math.PI * 2 })
+    }
+}
+
+gui.addColor(parameter, 'color').onChange(() => {
+    material.color.set(parameter.color)
+})
+gui.add(parameter, 'spin')
