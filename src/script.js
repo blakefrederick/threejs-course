@@ -139,14 +139,14 @@ gui.add(boxMesh.position, 'z').min(-3).max(3).step(0.01).name('z position')
 gui.add(boxMesh.rotation, 'x').min(-3).max(3).step(0.01).name('x rotation')
 gui.add(boxMesh.rotation, 'y').min(-3).max(3).step(0.01).name('y rotation')
 gui.add(boxMesh.rotation, 'z').min(-3).max(3).step(0.01).name('z rotation')
-gui.add(boxMesh.scale, 'x').min(0).max(3).step(0.01).name('x scale')
-gui.add(boxMesh.scale, 'y').min(0).max(3).step(0.01).name('y scale')
-gui.add(boxMesh.scale, 'z').min(0).max(3).step(0.01).name('z scale')
+gui.add(boxMesh.scale, 'x').min(0).max(300).step(1).name('x scale')
+gui.add(boxMesh.scale, 'y').min(0).max(300).step(1).name('y scale')
+gui.add(boxMesh.scale, 'z').min(0).max(300).step(1).name('z scale')
 
 const parameter = {
     color: '#000080',
     spinBox: () => {
-        gsap.to(boxMesh.rotation, { duration: 1, y: boxMesh.rotation.y + Math.PI * 2 })
+        gsap.to(boxMesh.rotation, { duration: 1 * Math.random(), y: boxMesh.rotation.y + (Math.PI * 2) / Math.random() / 2 })
     },
     spinSphere: () => {
         gsap.to(sphereMesh.rotation, { duration: 2, y: sphereMesh.rotation.y + Math.PI * 8, x: sphereMesh.rotation.x + Math.PI / 1.1 })
@@ -160,6 +160,60 @@ const parameter = {
     comeBack: () => {
         gsap.to(boxMesh.position, { duration: 3, z: 0 }),
         gsap.to(sphereMesh.position, { duration: 3, z: 0 })
+    },
+    multiplySphere: () => {
+        const newSphere = sphereMesh.clone()
+        newSphere.position.set(
+            camera.position.x - (2 * Math.random() * 5),
+            camera.position.y + (1 * Math.random() * 3),
+            camera.position.z - (0 + Math.random() * 4)
+        );
+        scene.add(newSphere)
+    },
+    flyAwayAll: () => {
+        scene.traverse((object) => {
+            if (object instanceof THREE.Mesh) {
+                gsap.to(object.position, { duration: 3, z: object.position.z - 200 })
+            }
+        });
+    },
+    comeBackAll: () => {
+        scene.traverse((object) => {
+            if (object instanceof THREE.Mesh) {
+                gsap.to(object.position, { duration: 0.5 * Math.random(), z: 50 * Math.random() })
+            }
+        });
+    },
+    spinAll: () => {
+        scene.traverse((object) => {
+            if (object instanceof THREE.Mesh) {
+                gsap.to(object.rotation, { duration: 1 * Math.random(), y: object.rotation.y + (Math.PI * 2) / Math.random() / 2 })
+            }
+        });
+    },
+    rain1000Baseballs: () => {
+        for (let i = 0; i < 1000; i++) {
+            const newSphere = sphereMesh.clone()
+            newSphere.position.set(
+            camera.position.x - (2 * Math.random() * 100) + (0 + Math.random() * 100),
+            camera.position.y + (1 * Math.random() * 50),
+            camera.position.z - (0 + Math.random() * 100) + (0 + Math.random() * 100)
+            );
+            scene.add(newSphere)
+            gsap.to(newSphere.position, { duration: 3, y: -10, ease: "power2.out" })
+        }
+    },
+    drop1000boxes: () => {
+        for (let i = 0; i < 1000; i++) {
+            const newBox = boxMesh.clone()
+            newBox.position.set(
+            camera.position.x - (2 * Math.random() * 100) + (0 + Math.random() * 100),
+            camera.position.y + (1 * Math.random() * 50),
+            camera.position.z - (0 + Math.random() * 100) + (0 + Math.random() * 100)
+            );
+            scene.add(newBox)
+            gsap.to(newBox.position, { duration: 1, y: -10 * Math.random(), ease: "power1.out" })
+        }
     }
 }
 
@@ -171,3 +225,9 @@ gui.add(parameter, 'flyAwayBox')
 gui.add(parameter, 'comeBack')
 gui.add(parameter, 'spinBox')
 gui.add(parameter, 'spinSphere')
+gui.add(parameter, 'multiplySphere')
+gui.add(parameter, 'flyAwayAll')
+gui.add(parameter, 'comeBackAll')
+gui.add(parameter, 'spinAll')
+gui.add(parameter, 'rain1000Baseballs')
+gui.add(parameter, 'drop1000boxes')

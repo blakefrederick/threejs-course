@@ -18,3 +18,27 @@ body {
     overflow: hidden;
     background: white;
 }
+
+.etc {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    z-index: 1000;
+    font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .dg.main {
+        width: 100px !important;
+        font-size: 8px;
+    }
+    .close-button {
+        width: 100px !important;
+    }
+}
