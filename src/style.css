@@ -19,6 +19,14 @@ body {
     background: white;
 }
 
+input {
+    font-size: 0.5rem;
+}
+
+.selector {
+    right: 0;
+}
+
 .etc {
     position: absolute;
     bottom: 0;
@@ -40,5 +48,29 @@ body {
     }
     .close-button {
         width: 100px !important;
+    }
+}
+
+.controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    z-index: 1000;
+    font-size: 0.75rem;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+
+    .control-button {
+        width: 30px;
+        height: 30px;
+        border-radius: 25%;
     }
 }

@@ -114,31 +114,110 @@ window.addEventListener('resize', () => {
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 
+// Keyboard controls
+const keyboard = {}
+window.addEventListener('keydown', (event) => {
+    keyboard[event.key] = true
+})
+window.addEventListener('keyup', (event) => {
+    keyboard[event.key] = false
+})
+
+// Event listeners for control buttons
+const controlButtons = document.querySelectorAll('.control-button')
+
+controlButtons.forEach(button => {
+    let intervalId
+    const direction = button.classList[1]
+    const handleButtonPress = () => {
+        moveCamera(direction)
+        intervalId = setInterval(() => {
+            moveCamera(direction)
+        }, 10)
+    }
+    const handleButtonRelease = () => {
+        clearInterval(intervalId)
+    }
+    button.addEventListener('mousedown', handleButtonPress)
+    button.addEventListener('mouseup', handleButtonRelease)
+    button.addEventListener('touchstart', handleButtonPress)
+    button.addEventListener('touchend', handleButtonRelease)
+})
+
+const moveCamera = (direction) => {
+    const moveFactor = 7.77
+    switch (direction) {
+        case 'up':
+            camera.position.z -= 0.01 * moveFactor
+            break
+        case 'down':
+            camera.position.z += 0.01 * moveFactor
+            break
+        case 'left':
+            camera.position.x -= 0.01 * moveFactor
+            break
+        case 'right':
+            camera.position.x += 0.01 * moveFactor
+            break
+        case 'raise':
+            camera.position.y += 0.01 * moveFactor
+            break
+        case 'sink':
+            camera.position.y -= 0.01 * moveFactor
+            break
+        default:
+            break
+    }
+
+    if (direction === undefined) {
+        const moveFactor = 3.33
+        if (keyboard['w']) {
+            camera.position.z -= 0.1 * moveFactor
+        }
+        if (keyboard['s']) {
+            camera.position.z += 0.1 * moveFactor
+        }
+        if (keyboard['a']) {
+            camera.position.x -= 0.1 * moveFactor
+        }
+        if (keyboard['d']) {
+            camera.position.x += 0.1 * moveFactor
+        }
+        if (keyboard['q']) {
+            camera.position.y += 0.1 * moveFactor
+        }
+        if (keyboard['e']) {
+            camera.position.y -= 0.1 * moveFactor
+        }
+    }
+}
+
+// Axes Helper
+const axesHelper = new THREE.AxesHelper(2)
+scene.add(axesHelper)
+
+// Grid Helper
+const gridHelper = new THREE.GridHelper(100, 100)
+gridHelper.material.opacity = 0.15
+gridHelper.material.transparent = true
+scene.add(gridHelper)
+
 // Animation Loop
 const animate = () => {
     requestAnimationFrame(animate)
-
     controls.update()
-
+    moveCamera()
     boxMesh.rotation.x += 0.001
     boxMesh.rotation.y += 0.002
     boxMesh.rotation.z += 0.003
-
     renderer.render(scene, camera)
 }
-
 animate()
 
 
 // Debug
 
 const gui = new dat.GUI()
-gui.add(boxMesh.position, 'x').min(-3).max(3).step(0.01).name('x position')
-gui.add(boxMesh.position, 'y').min(-3).max(3).step(0.01).name('y position')
-gui.add(boxMesh.position, 'z').min(-3).max(3).step(0.01).name('z position')
-gui.add(boxMesh.rotation, 'x').min(-3).max(3).step(0.01).name('x rotation')
-gui.add(boxMesh.rotation, 'y').min(-3).max(3).step(0.01).name('y rotation')
-gui.add(boxMesh.rotation, 'z').min(-3).max(3).step(0.01).name('z rotation')
 gui.add(boxMesh.scale, 'x').min(0).max(300).step(1).name('x scale')
 gui.add(boxMesh.scale, 'y').min(0).max(300).step(1).name('y scale')
 gui.add(boxMesh.scale, 'z').min(0).max(300).step(1).name('z scale')
@@ -167,7 +246,7 @@ const parameter = {
             camera.position.x - (2 * Math.random() * 5),
             camera.position.y + (1 * Math.random() * 3),
             camera.position.z - (0 + Math.random() * 4)
-        );
+        )
         scene.add(newSphere)
     },
     flyAwayAll: () => {
@@ -175,21 +254,21 @@ const parameter = {
             if (object instanceof THREE.Mesh) {
                 gsap.to(object.position, { duration: 3, z: object.position.z - 200 })
             }
-        });
+        })
     },
     comeBackAll: () => {
         scene.traverse((object) => {
             if (object instanceof THREE.Mesh) {
                 gsap.to(object.position, { duration: 0.5 * Math.random(), z: 50 * Math.random() })
             }
-        });
+        })
     },
     spinAll: () => {
         scene.traverse((object) => {
             if (object instanceof THREE.Mesh) {
                 gsap.to(object.rotation, { duration: 1 * Math.random(), y: object.rotation.y + (Math.PI * 2) / Math.random() / 2 })
             }
-        });
+        })
     },
     rain1000Baseballs: () => {
         for (let i = 0; i < 1000; i++) {
@@ -198,7 +277,7 @@ const parameter = {
             camera.position.x - (2 * Math.random() * 100) + (0 + Math.random() * 100),
             camera.position.y + (1 * Math.random() * 50),
             camera.position.z - (0 + Math.random() * 100) + (0 + Math.random() * 100)
-            );
+            )
             scene.add(newSphere)
             gsap.to(newSphere.position, { duration: 3, y: -10, ease: "power2.out" })
         }
@@ -210,7 +289,7 @@ const parameter = {
             camera.position.x - (2 * Math.random() * 100) + (0 + Math.random() * 100),
             camera.position.y + (1 * Math.random() * 50),
             camera.position.z - (0 + Math.random() * 100) + (0 + Math.random() * 100)
-            );
+            )
             scene.add(newBox)
             gsap.to(newBox.position, { duration: 1, y: -10 * Math.random(), ease: "power1.out" })
         }
