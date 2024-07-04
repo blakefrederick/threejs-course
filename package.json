@@ -11,6 +11,7 @@
     "vite": "^4.0.4"
   },
   "dependencies": {
+    "lil-gui": "^0.19.2",
     "dat.gui": "^0.7.9",
     "gsap": "^3.12.5",
     "three": "^0.148.0"

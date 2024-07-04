@@ -1,88 +1,123 @@
-import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import gsap from 'gsap'
-import * as dat from 'dat.gui'
+import GUI from 'lil-gui'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 
+// Debug
+const gui = new GUI()
+gui.close()
+
+// Canvas
 const canvas = document.querySelector('canvas.webgl')
 
-// Create a scene
+// Scene
 const scene = new THREE.Scene()
 
-// Geometry
-const boxGeometry = new THREE.BoxGeometry(1, 1, 1)
+/**
+ * Textures
+ */
+const textureLoader = new THREE.TextureLoader()
 
-// Textures
-const loadingManager = new THREE.LoadingManager()
+const doorColorTexture = textureLoader.load('./textures/door/color.jpg')
+const doorAlphaTexture = textureLoader.load('./textures/door/alpha.jpg')
+const doorAmbientOcclusionTexture = textureLoader.load('./textures/door/ambientOcclusion.jpg')
+const doorHeightTexture = textureLoader.load('./textures/door/height.jpg')
+const doorNormalTexture = textureLoader.load('./textures/door/normal.jpg')
+const doorMetalnessTexture = textureLoader.load('./textures/door/metalness.jpg')
+const doorRoughnessTexture = textureLoader.load('./textures/door/roughness.jpg')
+const matcapTexture = textureLoader.load('./textures/matcaps/8.png')
+const gradientTexture = textureLoader.load('./textures/gradients/5.jpg')
 
-loadingManager.onStart = () => {
-    console.log('onStart loading texture start')
-}
-loadingManager.onProgress = () => {
-    console.log('onProgress loading texture progress')
-}
-loadingManager.onError = () => {
-    console.log('onError loading texture error')
-}
+doorColorTexture.colorSpace = THREE.SRGBColorSpace
+matcapTexture.colorSpace = THREE.SRGBColorSpace
 
-const textureLoader = new THREE.TextureLoader(loadingManager)
-const cardboardTexture = textureLoader.load('cardboard.jpg', 
-    () => {
-        console.log('loading texture start')
-    },
-    () => {
-        console.log('loading texture progress')
-    },
-    () => {
-        console.log('loading texture error')
-    }
+/**
+ * Environment map
+ */
+const rgbeLoader = new RGBELoader()
+rgbeLoader.load('./textures/environmentMap/victoria_sunset_2k.hdr', (environmentMap) =>
+{
+    environmentMap.mapping = THREE.EquirectangularReflectionMapping
+
+    scene.background = environmentMap
+    scene.environment = environmentMap
+})
+
+/**
+ * MeshPhysicalMaterial
+ */
+// Base material
+const material = new THREE.MeshPhysicalMaterial()
+material.metalness = 0.65
+material.roughness = 0.05
+
+gui.add(material, 'metalness').min(0).max(1).step(0.0001)
+gui.add(material, 'roughness').min(0).max(1).step(0.0001)
+
+// // Clearcoat
+material.clearcoat = 1
+material.clearcoatRoughness = 0
+
+gui.add(material, 'clearcoat').min(0).max(1).step(0.0001)
+gui.add(material, 'clearcoatRoughness').min(0).max(1).step(0.0001)
+
+// // Sheen
+material.sheen = 1
+material.sheenRoughness = 0.25
+material.sheenColor.set(1, 1, 1)
+
+gui.add(material, 'sheen').min(0).max(1).step(0.0001)
+gui.add(material, 'sheenRoughness').min(0).max(1).step(0.0001)
+gui.addColor(material, 'sheenColor')
+
+// // Iridescence
+material.iridescence = 0.1
+material.iridescenceIOR = 1
+material.iridescenceThicknessRange = [ 100, 800 ]
+
+gui.add(material, 'iridescence').min(0).max(1).step(0.0001)
+gui.add(material, 'iridescenceIOR').min(1).max(2.333).step(0.0001)
+gui.add(material.iridescenceThicknessRange, '0').min(1).max(1000).step(1)
+gui.add(material.iridescenceThicknessRange, '1').min(1).max(1000).step(1)
+
+// Transmission
+material.transmission = 1
+material.ior = 1.5
+material.thickness = 0.5
+
+gui.add(material, 'transmission').min(0).max(1).step(0.0001)
+gui.add(material, 'ior').min(1).max(10).step(0.0001)
+gui.add(material, 'thickness').min(0).max(1).step(0.0001)
+
+// Objects
+const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 64, 64),
+    material
 )
+sphere.position.x = - 1.5
 
-const baseballTexture = textureLoader.load('baseball.jpg', 
-    () => {
-        console.log('loading baseballTexture texture start')
-    },
-    () => {
-        console.log('loading baseballTexture texture progress')
-    },
-    () => {
-        console.log('loading baseballTexture texture error')
-    }
+const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(10, 10, 1000, 1000),
+    material
 )
+plane.position.y = -7
+plane.material.side = THREE.DoubleSide
 
-// Box - Cardboard texture applied
-const boxMaterial = new THREE.MeshBasicMaterial({ map: cardboardTexture })
-const boxMesh = new THREE.Mesh(boxGeometry, boxMaterial)
-scene.add(boxMesh)
+const torus = new THREE.Mesh(
+    new THREE.TorusGeometry(1.3, 0.4, 64, 128),
+    material
+)
+torus.position.x = 1.5
 
-// Sphere - Baseball texture applied
-const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32)
-const sphereMaterial = new THREE.MeshBasicMaterial({ map: baseballTexture })
-const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial)
-
-sphereMesh.position.set(-2, 1, 0)
-scene.add(sphereMesh)
+scene.add(sphere, plane, torus)
 
 const sizes = {
     width: window.innerWidth,
     height: window.innerHeight
 }
 
-// Camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height)
-camera.position.z = 3
-camera.position.y = 1
-camera.position.x = 1
-scene.add(camera)
-
-// Renderer
-const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true }) // alpha for transparent background
-renderer.setSize(sizes.width, sizes.height)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-
-// Event listeners
-window.addEventListener('resize', () => {
-    // Update canvas size to fit the window
+window.addEventListener('resize', () =>
+{
     sizes.width = window.innerWidth
     sizes.height = window.innerHeight
 
@@ -90,223 +125,54 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix()
 
     renderer.setSize(sizes.width, sizes.height)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
-// window.addEventListener('dblclick', () => {
-//     const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-
-//     if (!fullscreenElement) {
-//         if (canvas.requestFullscreen) {
-//             canvas.requestFullscreen()
-//         } else if (canvas.webkitRequestFullscreen) {
-//             canvas.webkitRequestFullscreen()
-//         }
-//     } else {
-//         if (document.exitFullscreen) {
-//             document.exitFullscreen()
-//         } else if (document.webkitExitFullscreen) {
-//             document.webkitExitFullscreen()
-//         }
-//     }
-// })
+// Camera
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
+camera.position.x = 3
+camera.position.y = 3
+camera.position.z = 6
+scene.add(camera)
 
 // Controls
-const controls = new OrbitControls(camera, renderer.domElement)
+const controls = new OrbitControls(camera, canvas)
 controls.enableDamping = true
 
-// Keyboard controls
-const keyboard = {}
-window.addEventListener('keydown', (event) => {
-    keyboard[event.key] = true
+/**
+ * Renderer
+ */
+const renderer = new THREE.WebGLRenderer({
+    canvas: canvas
 })
-window.addEventListener('keyup', (event) => {
-    keyboard[event.key] = false
-})
+renderer.setSize(sizes.width, sizes.height)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
-// Event listeners for control buttons
-const controlButtons = document.querySelectorAll('.control-button')
+/**
+ * Animate
+ */
+const clock = new THREE.Clock()
 
-controlButtons.forEach(button => {
-    let intervalId
-    const direction = button.classList[1]
-    const handleButtonPress = () => {
-        moveCamera(direction)
-        intervalId = setInterval(() => {
-            moveCamera(direction)
-        }, 10)
-    }
-    const handleButtonRelease = () => {
-        clearInterval(intervalId)
-    }
-    button.addEventListener('mousedown', handleButtonPress)
-    button.addEventListener('mouseup', handleButtonRelease)
-    button.addEventListener('touchstart', handleButtonPress)
-    button.addEventListener('touchend', handleButtonRelease)
-})
+const tickTock = () =>
+{
+    const elapsedTime = clock.getElapsedTime()
 
-const moveCamera = (direction) => {
-    const moveFactor = 7.77
-    switch (direction) {
-        case 'up':
-            camera.position.z -= 0.01 * moveFactor
-            break
-        case 'down':
-            camera.position.z += 0.01 * moveFactor
-            break
-        case 'left':
-            camera.position.x -= 0.01 * moveFactor
-            break
-        case 'right':
-            camera.position.x += 0.01 * moveFactor
-            break
-        case 'raise':
-            camera.position.y += 0.01 * moveFactor
-            break
-        case 'sink':
-            camera.position.y -= 0.01 * moveFactor
-            break
-        default:
-            break
-    }
+    sphere.rotation.y = 0.1 * elapsedTime
+    plane.rotation.y = 0.1 * elapsedTime
+    torus.rotation.y = 0.1 * elapsedTime
 
-    if (direction === undefined) {
-        const moveFactor = 3.33
-        if (keyboard['w']) {
-            camera.position.z -= 0.1 * moveFactor
-        }
-        if (keyboard['s']) {
-            camera.position.z += 0.1 * moveFactor
-        }
-        if (keyboard['a']) {
-            camera.position.x -= 0.1 * moveFactor
-        }
-        if (keyboard['d']) {
-            camera.position.x += 0.1 * moveFactor
-        }
-        if (keyboard['q']) {
-            camera.position.y += 0.1 * moveFactor
-        }
-        if (keyboard['e']) {
-            camera.position.y -= 0.1 * moveFactor
-        }
-    }
-}
+    sphere.rotation.x = - 0.15 * elapsedTime
+    plane.rotation.x = - 0.15 * elapsedTime
+    torus.rotation.x = - 0.15 * elapsedTime
 
-// Axes Helper
-const axesHelper = new THREE.AxesHelper(2)
-scene.add(axesHelper)
+    torus.position.y = Math.sin(elapsedTime) * 0.5
+    torus.position.x = Math.cos(elapsedTime) * 2.5 
 
-// Grid Helper
-const gridHelper = new THREE.GridHelper(100, 100)
-gridHelper.material.opacity = 0.15
-gridHelper.material.transparent = true
-scene.add(gridHelper)
-
-// Animation Loop
-const animate = () => {
-    requestAnimationFrame(animate)
     controls.update()
-    moveCamera()
-    boxMesh.rotation.x += 0.001
-    boxMesh.rotation.y += 0.002
-    boxMesh.rotation.z += 0.003
+
     renderer.render(scene, camera)
-}
-animate()
 
-
-// Debug
-
-const gui = new dat.GUI()
-gui.add(boxMesh.scale, 'x').min(0).max(300).step(1).name('x scale')
-gui.add(boxMesh.scale, 'y').min(0).max(300).step(1).name('y scale')
-gui.add(boxMesh.scale, 'z').min(0).max(300).step(1).name('z scale')
-
-const parameter = {
-    color: '#000080',
-    spinBox: () => {
-        gsap.to(boxMesh.rotation, { duration: 1 * Math.random(), y: boxMesh.rotation.y + (Math.PI * 2) / Math.random() / 2 })
-    },
-    spinSphere: () => {
-        gsap.to(sphereMesh.rotation, { duration: 2, y: sphereMesh.rotation.y + Math.PI * 8, x: sphereMesh.rotation.x + Math.PI / 1.1 })
-    },
-    flyAwaySphere: () => {
-        gsap.to(sphereMesh.position, { duration: 3, z: sphereMesh.position.z - 200 })
-    },
-    flyAwayBox: () => {
-        gsap.to(boxMesh.position, { duration: 3, z: boxMesh.position.z - 200 })
-    },
-    comeBack: () => {
-        gsap.to(boxMesh.position, { duration: 3, z: 0 }),
-        gsap.to(sphereMesh.position, { duration: 3, z: 0 })
-    },
-    multiplySphere: () => {
-        const newSphere = sphereMesh.clone()
-        newSphere.position.set(
-            camera.position.x - (2 * Math.random() * 5),
-            camera.position.y + (1 * Math.random() * 3),
-            camera.position.z - (0 + Math.random() * 4)
-        )
-        scene.add(newSphere)
-    },
-    flyAwayAll: () => {
-        scene.traverse((object) => {
-            if (object instanceof THREE.Mesh) {
-                gsap.to(object.position, { duration: 3, z: object.position.z - 200 })
-            }
-        })
-    },
-    comeBackAll: () => {
-        scene.traverse((object) => {
-            if (object instanceof THREE.Mesh) {
-                gsap.to(object.position, { duration: 0.5 * Math.random(), z: 50 * Math.random() })
-            }
-        })
-    },
-    spinAll: () => {
-        scene.traverse((object) => {
-            if (object instanceof THREE.Mesh) {
-                gsap.to(object.rotation, { duration: 1 * Math.random(), y: object.rotation.y + (Math.PI * 2) / Math.random() / 2 })
-            }
-        })
-    },
-    rain1000Baseballs: () => {
-        for (let i = 0; i < 1000; i++) {
-            const newSphere = sphereMesh.clone()
-            newSphere.position.set(
-            camera.position.x - (2 * Math.random() * 100) + (0 + Math.random() * 100),
-            camera.position.y + (1 * Math.random() * 50),
-            camera.position.z - (0 + Math.random() * 100) + (0 + Math.random() * 100)
-            )
-            scene.add(newSphere)
-            gsap.to(newSphere.position, { duration: 3, y: -10, ease: "power2.out" })
-        }
-    },
-    drop1000boxes: () => {
-        for (let i = 0; i < 1000; i++) {
-            const newBox = boxMesh.clone()
-            newBox.position.set(
-            camera.position.x - (2 * Math.random() * 100) + (0 + Math.random() * 100),
-            camera.position.y + (1 * Math.random() * 50),
-            camera.position.z - (0 + Math.random() * 100) + (0 + Math.random() * 100)
-            )
-            scene.add(newBox)
-            gsap.to(newBox.position, { duration: 1, y: -10 * Math.random(), ease: "power1.out" })
-        }
-    }
+    window.requestAnimationFrame(tickTock)
 }
 
-gui.addColor(parameter, 'color').onChange(() => {
-    boxMaterial.color.set(parameter.color)
-})
-gui.add(parameter, 'flyAwaySphere')
-gui.add(parameter, 'flyAwayBox')
-gui.add(parameter, 'comeBack')
-gui.add(parameter, 'spinBox')
-gui.add(parameter, 'spinSphere')
-gui.add(parameter, 'multiplySphere')
-gui.add(parameter, 'flyAwayAll')
-gui.add(parameter, 'comeBackAll')
-gui.add(parameter, 'spinAll')
-gui.add(parameter, 'rain1000Baseballs')
-gui.add(parameter, 'drop1000boxes')
+tickTock()
